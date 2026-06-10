@@ -272,7 +272,8 @@ function parseRecord(text, folderName, fileName, year) {
   }
 
   let anaeLine = '';
-  const _ai = text.indexOf('안내유형');
+  const _sf = text.indexOf('생년월일');
+  const _ai = text.indexOf('안내유형', _sf >= 0 ? _sf : 0);
   const _bi = _ai >= 0 ? text.indexOf('기장의무', _ai) : -1;
   if (_ai >= 0 && _bi > _ai) anaeLine = text.slice(_ai + 4, _bi).trim();
   const anaeTags = ANAE_TAGS.filter(t => norm(anaeLine).includes(norm(t.kw))).map(t => t.label);
@@ -302,7 +303,7 @@ function parseRecord(text, folderName, fileName, year) {
   const gasanseItems = parseGasanse(text);
   const seongsilItems = SEONGSIL_ITEMS.filter(it => it.re.test(text)).map(it => it.key);
 
-  const upStart = text.indexOf('사업장별 수입금액');
+  const upStart = text.indexOf('사업장별수입금액');
   const upEnd = text.indexOf('타소득');
   const upSeg = (upStart !== -1 && upEnd !== -1) ? text.slice(upStart, upEnd) : text;
   const upjong = [...new Set((upSeg.match(/\b\d{6}\b/g) || []))];
@@ -339,7 +340,7 @@ async function extractText(file) {
       const c = await page.getTextContent();
       text += c.items.map(it => it.str).join(' ') + '\n';
     }
-    return text.replace(/\s+/g, ' ');
+    return text.replace(/\s+/g, '');
   } finally { try { pdf.destroy(); } catch (e) {} }
 }
 
@@ -531,7 +532,7 @@ function matches(r) {
     if (F.contrib[k] !== 'all') { const has = r[k] != null && r[k] > 0; checks.push(ynPass(F.contrib[k], has)); }
   }
   if (F.upjong.size) checks.push([...F.upjong].some(v => r.upjong.includes(v)));
-  if (F.kw) checks.push(r.text.includes(F.kw));
+  if (F.kw) checks.push(r.text.includes(F.kw.replace(/\s/g, '')));
   if (checks.length === 0) return true;
   return F.mode === 'or' ? checks.some(Boolean) : checks.every(Boolean);
 }
