@@ -65,7 +65,7 @@
 <div class="wrap">
   <h1>종합소득세 신고안내문 검색 도구</h1>
   <div class="sub">고객 폴더의 「○○○ _ 안내문.pdf」 파일을 일괄 분석하여 조건별 명단을 추출합니다.</div>
-  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-10 17:01</div>
+  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-10 17:32</div>
 
   <div class="panel">
     <h2>1. 폴더 불러오기</h2>
@@ -443,7 +443,19 @@ async function analyzeDirs(dirs) {
     $('#status').textContent = `[${label}] 처리 중… ${done} / ${targets.length}`;
   }
 
-  let msg = `[${label}] 완료: ${records.length}건 분석${fail ? ` (${fail}건 읽기 실패)` : ''}`;
+  // 동일인(성명+생년월일+귀속연도) 중복 제거 — 안내문모음/하위폴더 사본이 있어도 1명당 1건만
+  const _seen = new Set();
+  const _before = records.length;
+  records = records.filter(r => {
+    if (!r.name || !r.birth) return true;          // 성명·생년월일 파싱 실패분은 합치지 않음
+    const k = `${r.year}|${r.name}|${r.birth}`;
+    if (_seen.has(k)) return false;
+    _seen.add(k);
+    return true;
+  });
+  const _dup = _before - records.length;
+
+  let msg = `[${label}] 완료: ${records.length}건 분석${_dup ? ` (중복 ${_dup}건 제거)` : ''}${fail ? ` (${fail}건 읽기 실패)` : ''}`;
   if (fail && firstErrors.length) msg += ` | 오류: ${firstErrors.join(' / ')}`;
   $('#status').textContent = msg;
   $('#prog').classList.remove('show');
