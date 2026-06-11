@@ -65,7 +65,7 @@
 <div class="wrap">
   <h1>종합소득세 신고안내문 검색 도구</h1>
   <div class="sub">고객 폴더의 「○○○ _ 안내문.pdf」 파일을 일괄 분석하여 조건별 명단을 추출합니다.</div>
-  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-10 17:50</div>
+  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-10 17:53</div>
 
   <div class="panel">
     <h2>1. 폴더 불러오기</h2>
@@ -531,20 +531,21 @@ function incomePass(r) {
 }
 
 function matches(r) {
+  const gc = arr => F.mode === 'or' ? arr.some(Boolean) : arr.every(Boolean);
   const checks = [];
-  if (F.anae.size) checks.push([...F.anae].some(t => r.anaeTags.includes(t)));
+  if (F.anae.size) checks.push(gc([...F.anae].map(t => r.anaeTags.includes(t))));
   if (F.jangbu.size) checks.push([...F.jangbu].some(v => r.기장의무.includes(v)));
   if (F.rate.size) checks.push(F.rate.has(r.적용경비율));
   const ip = incomePass(r); if (ip !== null) checks.push(ip);
   if (F.etc !== 'all') checks.push(ynPass(F.etc, r.타소득));
   if (F.gasanse !== 'all') checks.push(ynPass(F.gasanse, r.가산세));
   if (F.seongsil !== 'all') checks.push(ynPass(F.seongsil, r.성실신고));
-  if (F.gasanseItems.size) checks.push([...F.gasanseItems].some(v => r.gasanseItems.includes(v)));
-  if (F.seongsilItems.size) checks.push([...F.seongsilItems].some(v => r.seongsilItems.includes(v)));
+  if (F.gasanseItems.size) checks.push(gc([...F.gasanseItems].map(v => r.gasanseItems.includes(v))));
+  if (F.seongsilItems.size) checks.push(gc([...F.seongsilItems].map(v => r.seongsilItems.includes(v))));
   for (const k in F.contrib) {
     if (F.contrib[k] !== 'all') { const has = r[k] != null && r[k] > 0; checks.push(ynPass(F.contrib[k], has)); }
   }
-  if (F.upjong.size) checks.push([...F.upjong].some(v => r.upjong.includes(v)));
+  if (F.upjong.size) checks.push(gc([...F.upjong].map(v => r.upjong.includes(v))));
   if (F.kw) checks.push(r.text.includes(F.kw.replace(/\s/g, '')));
   if (checks.length === 0) return true;
   return F.mode === 'or' ? checks.some(Boolean) : checks.every(Boolean);
