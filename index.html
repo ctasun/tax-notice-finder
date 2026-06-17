@@ -618,6 +618,47 @@ function resetFilters() {
 }
 $('#clearBtn').onclick = () => { resetFilters(); render(); };
 
+function buildCondLabel() {
+  const fmtWon = n => {
+    if (n == null) return '';
+    if (n >= 100000000) return (n / 100000000).toString().replace(/\.0$/, '') + '억';
+    if (n >= 10000) return (n / 10000).toString().replace(/\.0$/, '') + '만';
+    return n.toLocaleString();
+  };
+  const parts = [];
+  const yrs = [...new Set(records.map(r => r.year))].filter(Boolean).sort();
+  if (yrs.length === 1) parts.push(yrs[0] + '년');
+  else if (yrs.length > 1) parts.push(yrs[0] + '-' + yrs[yrs.length - 1] + '년');
+
+  if (F.anae.size) parts.push([...F.anae].join('·'));
+  if (F.jangbu.size) parts.push([...F.jangbu].join('·'));
+  if (F.rate.size) parts.push([...F.rate].join('·'));
+
+  const inc = [];
+  F.incRanges.forEach(r => inc.push(fmtWon(r.min) + '~' + fmtWon(r.max)));
+  if (F.incCustomMin != null || F.incCustomMax != null)
+    inc.push(fmtWon(F.incCustomMin) + '~' + fmtWon(F.incCustomMax));
+  if (inc.length) parts.push('수입' + inc.join(','));
+
+  if (F.etc !== 'all') parts.push('타소득' + (F.etc === 'y' ? '있음' : '없음'));
+  if (F.gasanse !== 'all') parts.push('가산세' + (F.gasanse === 'y' ? '해당' : '없음'));
+  if (F.seongsil !== 'all') parts.push('성실신고' + (F.seongsil === 'y' ? '대상' : '비대상'));
+  if (F.gasanseItems.size) parts.push([...F.gasanseItems].join('·'));
+  if (F.seongsilItems.size) parts.push([...F.seongsilItems].join('·'));
+  for (const k in F.contrib)
+    if (F.contrib[k] !== 'all') parts.push(k + (F.contrib[k] === 'y' ? '있음' : '없음'));
+  if (F.upjong.size) parts.push('업종' + [...F.upjong].join(','));
+  if (F.kw) parts.push('키워드' + F.kw);
+
+  const condCount = parts.length - (yrs.length ? 1 : 0); // 귀속연도를 제외한 실제 조건 수
+  let label = parts.join('_');
+  if (condCount >= 2) label = (F.mode === 'or' ? 'OR' : 'AND') + '_' + label;
+  label = label.replace(/[\\/:*?"<>|\n\r\t]/g, '').replace(/\s+/g, ''); // 파일명 금지문자 제거
+  if (!label) label = '전체';
+  if (label.length > 90) label = label.slice(0, 90); // 파일명 과다 길이 방지
+  return label;
+}
+
 $('#exportBtn').onclick = () => {
   const rows = records.filter(matches).sort((a, b) =>
     (a.name || '').localeCompare(b.name || '', 'ko') ||
@@ -634,7 +675,9 @@ $('#exportBtn').onclick = () => {
   ws['!cols'] = head.map((h, i) => ({ wch: i === 3 || i === 17 || i === 19 ? 22 : (i === 20 ? 30 : 11) }));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, '검색결과');
-  XLSX.writeFile(wb, `신고안내문_검색결과_${new Date().toISOString().slice(0,10)}.xlsx`);
+  const _cond = buildCondLabel();
+  const _today = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `신고안내문_${_cond}_${_today}.xlsx`);
 };
 </script>
 </body>
