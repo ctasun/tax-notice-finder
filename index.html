@@ -65,7 +65,7 @@
 <div class="wrap">
   <h1>종합소득세 신고안내문 검색 도구</h1>
   <div class="sub">고객 폴더의 「○○○ _ 안내문.pdf」 파일을 일괄 분석하여 조건별 명단을 추출합니다.</div>
-  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-17 18:23</div>
+  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-17 18:30</div>
 
   <div class="panel">
     <h2>1. 폴더 불러오기</h2>
@@ -187,6 +187,9 @@
     </div>
     <div class="tbl-wrap">
       <table id="tbl"><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table>
+    </div>
+    <div style="display:flex; justify-content:flex-end; margin-top:9px;">
+      <button class="btn-export" id="exportBtn2">📥 결과 내보내기 (엑셀)</button>
     </div>
   </div>
 </div>
@@ -710,6 +713,9 @@ $('#exportBtn').onclick = () => {
   const _today = new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, `신고안내문_${_cond}_${_today}.xlsx`);
 };
+// 표 하단 내보내기 버튼: 상단 버튼과 동일 동작
+const _eb2 = document.getElementById('exportBtn2');
+if (_eb2) _eb2.onclick = () => $('#exportBtn').click();
 </script>
 </body>
 </html>
