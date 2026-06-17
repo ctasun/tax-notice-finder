@@ -65,7 +65,7 @@
 <div class="wrap">
   <h1>종합소득세 신고안내문 검색 도구</h1>
   <div class="sub">고객 폴더의 「○○○ _ 안내문.pdf」 파일을 일괄 분석하여 조건별 명단을 추출합니다.</div>
-  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-10 17:53</div>
+  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-17 17:42</div>
 
   <div class="panel">
     <h2>1. 폴더 불러오기</h2>
@@ -87,6 +87,11 @@
       <div class="filters">
         <span class="chip mode active" data-mode="and">모든 조건 만족 (AND)</span>
         <span class="chip mode" data-mode="or">조건 중 하나라도 (OR)</span>
+      </div>
+      <div class="hint" style="margin-top:6px;line-height:1.6">
+        ▸ <b>AND(교집합)</b> : 여러 종류의 조건을 <u>모두</u> 만족하는 사람만. 명단을 좁힐 때. <span style="color:#888">예) 복식부기 <b>그리고</b> 5억 이상 → 둘 다 해당자만</span><br>
+        ▸ <b>OR(합집합)</b> : 여러 종류의 조건 중 <u>하나라도</u> 맞으면 표시. 명단을 한꺼번에 모을 때. <span style="color:#888">예) 가산세 해당 <b>또는</b> 성실신고 대상 → 둘 중 하나만 맞아도</span><br>
+        ▸ 같은 칸 안에서 여러 개(예: 안내유형 여러 개)를 고르면 이 설정과 상관없이 "하나라도 포함"으로 처리됩니다. 조건을 한 종류만 걸면 AND·OR 결과는 같습니다.
       </div>
     </div>
 
