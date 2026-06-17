@@ -65,7 +65,7 @@
 <div class="wrap">
   <h1>종합소득세 신고안내문 검색 도구</h1>
   <div class="sub">고객 폴더의 「○○○ _ 안내문.pdf」 파일을 일괄 분석하여 조건별 명단을 추출합니다.</div>
-  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-17 18:16</div>
+  <div class="sub" style="color:#9aa3b2;margin-top:-8px">도구 버전: 2026-06-17 18:23</div>
 
   <div class="panel">
     <h2>1. 폴더 불러오기</h2>
@@ -73,6 +73,8 @@
     <div class="year-row" id="yearRow">
       <label>귀속연도</label>
       <div class="filters" id="yearChips"></div>
+      <label style="margin-left:6px">특정인만</label>
+      <input type="text" id="preName" placeholder="이름 또는 이름 생년월일6자리 (비우면 전체 분석)" style="width:240px;padding:7px 10px;border:1px solid #d3dae6;border-radius:6px;font-size:12.5px;font-family:inherit">
       <button class="btn-main" id="analyzeBtn">분석 시작</button>
     </div>
     <div class="progress" id="prog"><div></div></div>
@@ -425,10 +427,19 @@ async function analyzeDirs(dirs) {
   const targets = [];
   $('#status').textContent = `[${label}] 고객 폴더를 탐색하는 중입니다…`;
   const isClient = name => /_\s*\d{6}/.test(name); // "이름 _ 생년월일6자리" 형식의 고객 폴더만
+  // "특정인만" 입력 시: PDF를 열기 전에 폴더명으로 먼저 거른다(분석 시간 단축)
+  const _preEl = document.getElementById('preName');
+  const _pf = _preEl ? _preEl.value.replace(/[\s.\-]/g, '') : '';
+  const nameHit = (folderName) => {
+    if (!_pf) return true;
+    const fm = folderName.match(/([가-힣]{2,5})\s*_\s*(\d{6})/);
+    const key = fm ? norm(fm[1]) + fm[2] : norm(folderName);
+    return key.indexOf(_pf) >= 0;
+  };
   let scanned = 0, skipped = 0;
   for (const d of dirs) {
     for await (const sub of d.handle.values()) {
-      if (sub.kind === 'directory' && isClient(sub.name)) {
+      if (sub.kind === 'directory' && isClient(sub.name) && nameHit(sub.name)) {
         scanned++;
         if (scanned % 15 === 0) $('#status').textContent = `[${label}] 고객 폴더 탐색 중… ${scanned}명 확인 (안내문 ${targets.length}건)`;
         for await (const f of sub.values()) {
@@ -439,8 +450,10 @@ async function analyzeDirs(dirs) {
       } else { skipped++; }
     }
   }
-  $('#status').textContent = `[${label}] 고객 폴더 ${scanned}명에서 안내문 ${targets.length}건 발견 (분류 폴더 ${skipped}개 제외). 분석을 시작합니다…`;
-  if (targets.length === 0) { $('#status').textContent = `[${label}] "안내문.pdf" 파일을 찾지 못했습니다.`; return; }
+  $('#status').textContent = _pf
+    ? `[${label}] "${_preEl.value.trim()}" 조건으로 ${scanned}명 일치 · 안내문 ${targets.length}건 분석을 시작합니다…`
+    : `[${label}] 고객 폴더 ${scanned}명에서 안내문 ${targets.length}건 발견 (분류 폴더 ${skipped}개 제외). 분석을 시작합니다…`;
+  if (targets.length === 0) { $('#status').textContent = _pf ? `[${label}] "${_preEl.value.trim()}"에 해당하는 고객 폴더를 찾지 못했습니다. 이름 철자, 또는 과거 귀속분까지 보려면 「전체」 연도 선택을 확인하세요.` : `[${label}] "안내문.pdf" 파일을 찾지 못했습니다.`; return; }
 
   $('#prog').classList.add('show');
   $('#analyzeBtn').disabled = true; $('#pickBtn').disabled = true;
